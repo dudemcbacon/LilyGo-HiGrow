@@ -10,7 +10,7 @@
 /*
     Sensor selection, the default is the onboard sensor
 */
-// #define __HAS_BME280__               //BME280 temperature, humidity, pressure, height sensor
+#define __HAS_BME280__               //BME280 temperature, humidity, pressure, height sensor
 // #define __HAS_MOTOR__                //High and low level control relay, or other level drive motor
 // #define __HAS_RGB__                  //WS2812 single point colorful light
 
@@ -21,9 +21,25 @@
 
 
 // Wireless access point ssid password
-#define WIFI_SSID               "XXXXXXXX"
-#define WIFI_PASSWD             "12345678"
+#define WIFI_SSID               "Awesome."
+#define WIFI_PASSWD             "baconsandwich!12345"
 
+// Citrus
+#define CITRUS_PLANT            "Kalamansi"
+
+// Influx
+#define INFLUXDB_URL            "http://10.0.10.41:8086"
+#define INFLUXDB_ORG            "awesome"
+#define INFLUXDB_BUCKET         "citrus"
+#define INFLUXDB_TOKEN          "_OqP0cgQZjd4jKMJQbIQiBYxtKnCmFHXwk6v-QHCE7yc-X76EmkqO9AUwM2S1vH4mW4rZ-cnTLKjQMue-Wbpdw=="
+
+// Set timezone string according to https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html
+// Examples:
+//  Pacific Time: "PST8PDT"
+//  Eastern: "EST5EDT"
+//  Japanesse: "JST-9"
+//  Central Europe: "CET-1CEST,M3.5.0,M10.5.0/3"
+#define TZ_INFO                 "PST8PDT"
 
 #define I2C_SDA                 (25)
 #define I2C_SCL                 (26)
@@ -43,28 +59,10 @@
 #define OB_BME280_ADDRESS       (0x77)
 #define OB_SHT3X_ADDRESS        (0x44)
 
-#ifdef _USE_CN_
-#define DASH_BME280_TEMPERATURE_STRING  "BME 温度"
-#define DASH_BME280_PRESSURE_STRING     "BME 压力"
-#define DASH_BME280_ALTITUDE_STRING     "BME 高度"
-#define DASH_BME280_HUMIDITY_STRING     "BME 湿度"
-#define DASH_DHT_TEMPERATURE_STRING     "DHT1x 温度"
-#define DASH_DHT_HUMIDITY_STRING        "DHT1x 湿度"
-#define DASH_BH1750_LUX_STRING          "BH1750 亮度"
-#define DASH_SOIL_VALUE_STRING          "土壤湿度百分比"
-#define DASH_SALT_VALUE_STRING          "盐分百分比"
-#define DASH_BATTERY_STRING             "电池电压"
-#define DASH_DS18B20_STRING             "18B20 温度"
-#define DASH_SHT3X_TEMPERATURE_STRING   "SHT3X 温度"
-#define DASH_SHT3X_HUMIDITY_STRING      "SHT3X 湿度"
-#define DASH_MOTOR_CTRL_STRING          "水泵"
-#else
-#define DASH_BME280_TEMPERATURE_STRING  "BME Temperature"
-#define DASH_BME280_PRESSURE_STRING     "BME Pressure"
-#define DASH_BME280_ALTITUDE_STRING     "BME Altitude"
-#define DASH_BME280_HUMIDITY_STRING     "BME Humidity"
-#define DASH_DHT_TEMPERATURE_STRING     "DHT1x Temperature"
-#define DASH_DHT_HUMIDITY_STRING        "DHT1x Humidity"
+#define DASH_BME280_TEMPERATURE_STRING  "Temperature"
+#define DASH_BME280_PRESSURE_STRING     "Pressure"
+#define DASH_BME280_ALTITUDE_STRING     "Altitude"
+#define DASH_BME280_HUMIDITY_STRING     "Humidity"
 #define DASH_BH1750_LUX_STRING          "BH1750"
 #define DASH_SOIL_VALUE_STRING          "Soil Value"
 #define DASH_SALT_VALUE_STRING          "Salt Value"
@@ -73,6 +71,3 @@
 #define DASH_SHT3X_TEMPERATURE_STRING   "SHT3X Temperature"
 #define DASH_SHT3X_HUMIDITY_STRING      "SHT3X Humidity"
 #define DASH_MOTOR_CTRL_STRING          "Water pump"
-
-#endif  /*_USE_EN_*/
-

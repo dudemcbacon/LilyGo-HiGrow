@@ -4,25 +4,10 @@
 #include <BH1750.h>             //https://github.com/claws/BH1750
 #include <InfluxDbClient.h>
 #include "configuration.h"
-
-#ifdef __HAS_DS18B20__
-#include "ds18b20.h"
-#endif
-
-#ifdef __HAS_BME280__
 #include <Adafruit_BME280.h>
-#endif
 
-#ifdef __HAS_SHT3X__
-#include "SHT3X.h"
-#endif
 
-#ifdef __HAS_MOTOR__
-#include <Adafruit_NeoPixel.h>
-#endif
 
-#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  60       /* Time ESP32 will go to sleep (in seconds) */
 
 RTC_DATA_ATTR int bootCount = 0;
 
@@ -53,23 +38,7 @@ typedef struct {
 } higrow_sensors_event_t;
 
 BH1750              lightMeter(OB_BH1750_ADDRESS);  //0x23
-
-#ifdef __HAS_DS18B20__
-DS18B20             dsSensor(DS18B20_PIN);
-#endif /*__HAS_DS18B20__*/
-
-#ifdef __HAS_SHT3X__
-SHT3X               sht30;
-#endif /*__HAS_SHT3X__*/
-
-#ifdef __HAS_BME280__
 Adafruit_BME280     bme;                            //0x77
-#endif /*__HAS_BME280__*/
-
-#ifdef __HAS_MOTOR__
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, RGB_PIN, NEO_GRB + NEO_KHZ800);
-#endif  /*__HAS_MOTOR__*/
-
 
 bool                has_bmeSensor   = true;
 bool                has_lightSensor = true;
@@ -115,29 +84,15 @@ bool get_higrow_sensors_event(sensor_id_t id, higrow_sensors_event_t &val)
 {
     memset(&val, 0, sizeof(higrow_sensors_event_t));
     switch (id) {
-#ifdef __HAS_BME280__
     case BME280_SENSOR_ID: {
         if (has_bmeSensor) {
             val.temperature = bme.readTemperature();
-            val.humidity = (bme.readPressure() / 100.0F);
+            val.pressure = (bme.readPressure() / 100.0F);
+            val.humidity = bme.readHumidity();
             val.altitude = bme.readAltitude(1013.25);
         }
     }
     break;
-#endif
-
-#ifdef __HAS_SHT3X__
-    case SHT3x_SENSOR_ID: {
-        if (has_dhtSensor) {
-            if (sht30.get()) {
-                val.temperature = sht30.cTemp;
-                val.humidity = sht30.humidity;
-            }
-        }
-
-    }
-    break;
-#endif
 
     case BHT1750_SENSOR_ID: {
         if (has_lightSensor) {
@@ -167,15 +122,6 @@ bool get_higrow_sensors_event(sensor_id_t id, higrow_sensors_event_t &val)
         humi /= samples - 2;
         val.salt = humi;
     }
-    break;
-#ifdef __HAS_DS18B20__
-    case DS18B20_SENSOR_ID: {
-        val.temperature = dsSensor.temp();
-        if (isnan(val.temperature) || val.temperature > 125.0) {
-            val.temperature = 0;
-        }
-    }
-#endif
     break;
     case VOLTAGE_SENSOR_ID: {
         int vref = 1100;
@@ -235,66 +181,66 @@ void setup()
 
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
     //Increment boot number and print it every reboot
-  ++bootCount;
-  Serial.println("Boot number: " + String(bootCount));
+    ++bootCount;
+    Serial.println("Boot number: " + String(bootCount));
+ 
+    //Print the wakeup reason for ESP32
+    print_wakeup_reason();
 
-  //Print the wakeup reason for ESP32
-  print_wakeup_reason();
-
-  /*
-  First we configure the wake up source
-  We set our ESP32 to wake up every 5 seconds
-  */
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
-  " Seconds");
+    /*
+    First we configure the wake up source
+    We set our ESP32 to wake up every 5 seconds
+    */
+    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+    Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
+    " Seconds");
 }
 
 
 void loop()
 {
-        sensor.clearFields();
-        sensor.addField("rssi", WiFi.RSSI());
+    sensor.clearFields();
+    sensor.addField("rssi", WiFi.RSSI());
 
-        timestamp = millis();
+    timestamp = millis();
 
-        higrow_sensors_event_t val = {0};
+    higrow_sensors_event_t val = {0};
 
-        get_higrow_sensors_event(BHT1750_SENSOR_ID, val);
-        sensor.addField("light", val.light);
+    get_higrow_sensors_event(BHT1750_SENSOR_ID, val);
+    sensor.addField("light", val.light);
 
-        get_higrow_sensors_event(SOIL_SENSOR_ID, val);
-        sensor.addField("soil", val.soli);
+    get_higrow_sensors_event(SOIL_SENSOR_ID, val);
+    sensor.addField("soil", val.soli);
 
-        get_higrow_sensors_event(SALT_SENSOR_ID, val);
-        sensor.addField("salt", val.salt);
+    get_higrow_sensors_event(SALT_SENSOR_ID, val);
+    sensor.addField("salt", val.salt);
 
-        get_higrow_sensors_event(VOLTAGE_SENSOR_ID, val);
-        sensor.addField("voltage", val.voltage);
+    get_higrow_sensors_event(VOLTAGE_SENSOR_ID, val);
+    sensor.addField("voltage", val.voltage);
 
-        get_higrow_sensors_event(BME280_SENSOR_ID, val);
-        sensor.addField("temperature", val.temperature);
-        sensor.addField("humidity", val.humidity);
-        sensor.addField("altitude", val.altitude);
-        sensor.addField("pressure", val.pressure);
+    get_higrow_sensors_event(BME280_SENSOR_ID, val);
+    sensor.addField("temperature", val.temperature);
+    sensor.addField("humidity", val.humidity);
+    sensor.addField("altitude", val.altitude);
+    sensor.addField("pressure", val.pressure);
 
-        sensor.addField("boot_count", bootCount);
+    sensor.addField("boot_count", bootCount);
 
-        // Write Influx Data
-        // Print what are we exactly writing
-        Serial.print("Writing: ");
-        Serial.println(client.pointToLineProtocol(sensor));
-        // If no Wifi signal, try to reconnect it
-        if(WiFi.status() != WL_CONNECTED) {
-          Serial.println("Wifi connection lost");
-        }
-        // Write point
-        if (!client.writePoint(sensor)) {
-          Serial.print("Influx write failed: ");
-          Serial.println(client.getLastErrorMessage());
-       }
+    // Write Influx Data
+    // Print what are we exactly writing
+    Serial.print("Writing: ");
+    Serial.println(client.pointToLineProtocol(sensor));
+    // If no Wifi signal, try to reconnect it
+    if(WiFi.status() != WL_CONNECTED) {
+        Serial.println("Wifi connection lost");
+    }
+    // Write point
+    if (!client.writePoint(sensor)) {
+        Serial.print("Influx write failed: ");
+        Serial.println(client.getLastErrorMessage());
+    }
 
-       /*
+    /*
   Next we decide what all peripherals to shut down/keep on
   By default, ESP32 will automatically power down the peripherals
   not needed by the wakeup source, but if you want to be a poweruser
